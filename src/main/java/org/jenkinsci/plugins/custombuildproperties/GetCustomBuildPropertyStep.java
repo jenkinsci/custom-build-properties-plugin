@@ -36,42 +36,25 @@ import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
 
 /**
  *
  */
-public final class SetCustomBuildPropertyStep extends Step {
+public final class GetCustomBuildPropertyStep extends Step {
 
-	private static final Logger LOGGER = Logger.getLogger(SetCustomBuildPropertyStep.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(GetCustomBuildPropertyStep.class.getName());
 
 	private final String key;
-	private final Object value;
-	private boolean onlySetIfAbsent;
 
 	@DataBoundConstructor
-	public SetCustomBuildPropertyStep(String key, Object value) {
+	public GetCustomBuildPropertyStep(String key) {
 		super();
 
 		this.key = key;
-		this.value = value;
 	}
 
 	public String getKey() {
 		return key;
-	}
-
-	public Object getValue() {
-		return value;
-	}
-
-	public boolean isOnlySetIfAbsent() {
-		return onlySetIfAbsent;
-	}
-
-	@DataBoundSetter
-	public void setOnlySetIfAbsent(final boolean onlySetIfAbsent) {
-		this.onlySetIfAbsent = onlySetIfAbsent;
 	}
 
 	@Override
@@ -84,12 +67,12 @@ public final class SetCustomBuildPropertyStep extends Step {
 
 		@Override
 		public String getDisplayName() {
-			return "Sets custom build property";
+			return "Get Custom BuildProperty";
 		}
 
 		@Override
 		public String getFunctionName() {
-			return "setCustomBuildProperty";
+			return "getCustomBuildProperty";
 		}
 
 		@Override
@@ -99,50 +82,38 @@ public final class SetCustomBuildPropertyStep extends Step {
 
 	}
 
-	public static final class Execution extends SynchronousStepExecution<Void> {
+	public static final class Execution extends SynchronousStepExecution<Object> {
 
 		private static final long serialVersionUID = 1L;
 
-		private transient final SetCustomBuildPropertyStep step;
+		private transient final GetCustomBuildPropertyStep step;
 
-		public Execution(final SetCustomBuildPropertyStep step, final StepContext context) {
+		public Execution(final GetCustomBuildPropertyStep step, final StepContext context) {
 			super(context);
 			this.step = step;
 		}
 
 		@Override
-		protected Void run() throws Exception {
-			final Run run = getContext().get(Run.class);
+		protected Object run() throws Exception {
+			Run run = getContext().get(Run.class);
 
-			runLogic(step.getKey(), step.getValue(), step.isOnlySetIfAbsent(), run);
+			final String key = step.getKey();
 
-			return null;
-		}
+			while (true) {
+				run = run.getPreviousBuild();
+				if (run == null) {
+					return null;
+				}
 
-	}
-
-	protected static void runLogic(String key, Object value, boolean onlySetIfAbsent, Run<?,?> run) throws Exception {
-		synchronized (run) {
-			final CustomBuildPropertiesAction action;
-			final CustomBuildPropertiesAction actionMayBeNull = run.getAction(CustomBuildPropertiesAction.class);
-			if (actionMayBeNull != null) {
-				action = actionMayBeNull;
-			} else {
-				action = new CustomBuildPropertiesAction();
-			}
-
-			if (onlySetIfAbsent) {
-				action.setPropertyIfAbsent(key, value);
-			} else {
-				action.setProperty(key, value);
-			}
-
-			if (actionMayBeNull != null) {
-				run.save();
-			} else {
-				run.addAction(action);
+				final CustomBuildPropertiesAction action = run.getAction(CustomBuildPropertiesAction.class);
+				if (action != null) {
+					if (action.containsProperty(key)) {
+						return action.getProperty(key);
+					}
+				}
 			}
 		}
+
 	}
 
 }

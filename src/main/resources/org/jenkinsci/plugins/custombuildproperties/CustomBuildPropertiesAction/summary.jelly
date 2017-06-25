@@ -29,11 +29,15 @@ THE SOFTWARE.
         <h3>Custom Build Properties</h3>
 
         <j:set var="entrySetIterator" value="${it.properties.entrySet().iterator()}" />
-        <ul>
+        <table class="sortable pane bigtable">
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+            </tr>
             <j:while test="${entrySetIterator.hasNext()}">
                 <j:set var="entry" value="${entrySetIterator.next()}" />
-                <li>${entry.key} = ${entry.value}</li>
+                <tr><td>${entry.key}</td><td>${entry.value}</td></tr>
             </j:while>
-        </ul>
+        </table>
     </t:summary>
 </j:jelly>

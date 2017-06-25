@@ -47,6 +47,12 @@ public class CustomBuildPropertiesAction extends InvisibleAction {
 		}
 	}
 
+	public boolean containsProperty(String key) {
+		synchronized (properties) {
+			return properties.containsKey(key);
+		}
+	}
+
 	public Object getProperty(String key) {
 		synchronized (properties) {
 			return properties.get(key);
