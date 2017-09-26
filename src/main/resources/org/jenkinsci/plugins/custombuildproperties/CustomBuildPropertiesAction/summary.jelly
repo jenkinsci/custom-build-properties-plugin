@@ -23,8 +23,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 -->
 
-<?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:test="/lib/hudson/test" xmlns:f="/lib/form" xmlns:i="jelly:fmt" escapeText="false">
+<?jelly escape-by-default='false'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:test="/lib/hudson/test" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
     <t:summary icon="clipboard.png">
         <h3>Custom Build Properties</h3>
 
