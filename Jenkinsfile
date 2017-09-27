@@ -132,7 +132,7 @@ node('linux') {
 				}
 
 				stage('Archive Artifacts') {
-					archiveArtifacts artifacts: '**/target/*.hpi **/target/*.jar', onlyIfSuccessful: true, allowEmptyArchive: true
+					archiveArtifacts artifacts: '**/target/*.hpi,**/target/*.jar', onlyIfSuccessful: true, allowEmptyArchive: true
 				}
 			}
 		}
