@@ -47,6 +47,10 @@ import org.kohsuke.stapler.DataBoundSetter;
  */
 public final class SetJUnitCountStep extends Step {
 
+	public static final String CBP_SUFFIX_PASSED_COUNT = "PassedCount";
+	public static final String CBP_SUFFIX_FAILED_COUNT = "FailedCount";
+	public static final String CBP_SUFFIX_FAILED_AGE = "FailedAge";
+
 	private static final Logger LOGGER = Logger.getLogger(SetJUnitCountStep.class.getName());
 
 	private final String keyPrefix;
@@ -148,9 +152,9 @@ public final class SetJUnitCountStep extends Step {
 					failed = count(testResultAction.getFailedTests(), includePattern, excludePattern);
 				}
 
-				SetCustomBuildPropertyStep.runLogic(keyPrefix + "PassedCount", passed[0], onlySetIfAbsent, run);
-				SetCustomBuildPropertyStep.runLogic(keyPrefix + "FailedCount", failed[0], onlySetIfAbsent, run);
-				SetCustomBuildPropertyStep.runLogic(keyPrefix + "FailedAge", failed[1], onlySetIfAbsent, run);
+				SetCustomBuildPropertyStep.runLogic(keyPrefix + CBP_SUFFIX_PASSED_COUNT, passed[0], onlySetIfAbsent, run);
+				SetCustomBuildPropertyStep.runLogic(keyPrefix + CBP_SUFFIX_FAILED_COUNT, failed[0], onlySetIfAbsent, run);
+				SetCustomBuildPropertyStep.runLogic(keyPrefix + CBP_SUFFIX_FAILED_AGE, failed[1], onlySetIfAbsent, run);
 			}
 
 
