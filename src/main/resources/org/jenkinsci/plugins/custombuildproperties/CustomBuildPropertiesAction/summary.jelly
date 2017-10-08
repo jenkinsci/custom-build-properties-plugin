@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+<?xml version="1.0" encoding="UTF-8"?><!--
 The MIT License
 
 Copyright (c) 2017, Sebastian Hasait
@@ -24,20 +23,26 @@ THE SOFTWARE.
 -->
 
 <?jelly escape-by-default='false'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:test="/lib/hudson/test" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+<j:jelly xmlns:j="jelly:core" xmlns:t="/lib/hudson">
     <t:summary icon="clipboard.png">
         <h3>Custom Build Properties</h3>
-
-        <j:set var="entrySetIterator" value="${it.properties.entrySet().iterator()}" />
-        <table class="sortable pane bigtable">
-            <tr>
-                <th>Key</th>
-                <th>Value</th>
-            </tr>
-            <j:while test="${entrySetIterator.hasNext()}">
-                <j:set var="entry" value="${entrySetIterator.next()}" />
-                <tr><td>${entry.key}</td><td>${entry.value}</td></tr>
-            </j:while>
-        </table>
+        <j:forEach items="${it.viewTables}" var="viewTable">
+            <table class="sortable pane bigtable">
+                <tr>
+                    <th>${viewTable.title}</th>
+                    <j:forEach items="${viewTable.headers}" var="viewTableHeader">
+                        <th>${viewTableHeader.title}</th>
+                    </j:forEach>
+                </tr>
+                <j:forEach items="${viewTable.rows}" var="viewTableRow">
+                    <tr>
+                        <td>${viewTableRow.title}</td>
+                        <j:forEach items="${viewTableRow.cells}" var="viewTableCell">
+                            <td>${viewTableCell.value}</td>
+                        </j:forEach>
+                    </tr>
+                </j:forEach>
+            </table>
+        </j:forEach>
     </t:summary>
 </j:jelly>

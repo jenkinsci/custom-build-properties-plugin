@@ -24,54 +24,135 @@
 
 package org.jenkinsci.plugins.custombuildproperties;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import hudson.model.InvisibleAction;
+import org.jenkinsci.plugins.custombuildproperties.table.CbpTable;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
+
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 @ExportedBean
 public class CustomBuildPropertiesAction extends InvisibleAction {
 
-	private final Map<String, Object> properties = new HashMap<>();
+    public static final String CBP_TABLE_PREFIX = "_cbp_table_";
 
-	public CustomBuildPropertiesAction() {
-		super();
-	}
+    private final Map<String, Object> properties = new HashMap<>();
 
-	@Exported(visibility = 2)
-	public Map<String, Object> getProperties() {
-		synchronized (properties) {
-			return new HashMap<>(properties);
-		}
-	}
+    public CustomBuildPropertiesAction() {
+        super();
+    }
 
-	public boolean containsProperty(String key) {
-		synchronized (properties) {
-			return properties.containsKey(key);
-		}
-	}
+    @Exported(visibility = 2)
+    public Map<String, Object> getProperties() {
+        synchronized (properties) {
+            return new HashMap<>(properties);
+        }
+    }
 
-	public Object getProperty(String key) {
-		synchronized (properties) {
-			return properties.get(key);
-		}
-	}
+    public boolean containsProperty(String key) {
+        synchronized (properties) {
+            return properties.containsKey(key);
+        }
+    }
 
-	public void setProperty(String key, Object value) {
-		synchronized (properties) {
-			properties.put(key, value);
-		}
-	}
+    public Object getProperty(String key) {
+        synchronized (properties) {
+            return properties.get(key);
+        }
+    }
 
-	public void setPropertyIfAbsent(String key, Object value) {
-		synchronized (properties) {
-			if (!properties.containsKey(key)) {
-				properties.put(key, value);
-			}
-		}
-	}
+    public void setProperty(String key, Object value) {
+        synchronized (properties) {
+            properties.put(key, value);
+        }
+    }
+
+    public void setPropertyIfAbsent(String key, Object value) {
+        synchronized (properties) {
+            if (!properties.containsKey(key)) {
+                properties.put(key, value);
+            }
+        }
+    }
+
+    public List<CbpTable> getViewTables() {
+        Map<String, Object> sortedProperties = new TreeMap<>();
+        synchronized (properties) {
+            sortedProperties.putAll(properties);
+        }
+
+        List<CbpTable> tables = createTables(sortedProperties);
+        fillViewTables(sortedProperties, tables);
+
+        return tables;
+    }
+
+    private List<CbpTable> createTables(Map<String, Object> workProperties) {
+        List<CbpTable> result = new ArrayList<>();
+
+        Iterator<Map.Entry<String, Object>> propertiesI = workProperties.entrySet().iterator();
+        while (propertiesI.hasNext()) {
+            Map.Entry<String, Object> property = propertiesI.next();
+            String key = property.getKey();
+            Object value = property.getValue();
+            if (key != null && value instanceof String && key.startsWith(CBP_TABLE_PREFIX)) {
+                String title = key.substring(CBP_TABLE_PREFIX.length());
+                Pattern pattern;
+                try {
+                    pattern = Pattern.compile((String) value);
+                } catch (PatternSyntaxException e) {
+                    pattern = null;
+                }
+                if (pattern != null) {
+                    CbpTable table = new CbpTable();
+                    table.setTitle(title);
+                    table.setPattern(pattern);
+                    result.add(table);
+                    propertiesI.remove();
+                }
+            }
+        }
+        return result;
+    }
+
+    private void fillViewTables(Map<String, Object> workProperties, List<CbpTable> tables) {
+
+        Iterator<Map.Entry<String, Object>> propertiesI = workProperties.entrySet().iterator();
+        while (propertiesI.hasNext()) {
+            Map.Entry<String, Object> property = propertiesI.next();
+            String key = property.getKey();
+            Object value = property.getValue();
+            if (key != null) {
+                for (CbpTable table : tables) {
+                    Matcher matcher = table.getPattern().matcher(key);
+                    if (matcher.matches() && matcher.groupCount() >= 2) {
+                        String rowName = matcher.group(1);
+                        String columnName = matcher.group(2);
+                        table.addRawData(rowName, columnName, value);
+                        propertiesI.remove();
+                    }
+                }
+            }
+        }
+
+        if (!workProperties.isEmpty()) {
+            CbpTable table = new CbpTable();
+            table.setTitle("Key");
+            tables.add(table);
+
+            for (Map.Entry<String, Object> entry : workProperties.entrySet()) {
+                table.addRawData(entry.getKey(), "Value", entry.getValue());
+            }
+        }
+
+        for (CbpTable table : tables) {
+            table.processRaw();
+        }
+
+    }
 
 }
 
