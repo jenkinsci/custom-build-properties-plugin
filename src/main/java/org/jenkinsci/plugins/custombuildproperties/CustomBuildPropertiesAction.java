@@ -24,18 +24,26 @@
 
 package org.jenkinsci.plugins.custombuildproperties;
 
-import hudson.model.InvisibleAction;
+import hudson.model.Action;
+import hudson.model.Api;
+import hudson.model.Run;
+import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.custombuildproperties.table.CbpTable;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
+import javax.servlet.ServletException;
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 @ExportedBean
-public class CustomBuildPropertiesAction extends InvisibleAction {
+public class CustomBuildPropertiesAction implements Action {
 
     public static final String CBP_TABLE_PREFIX = "_cbp_table_";
 
@@ -154,5 +162,64 @@ public class CustomBuildPropertiesAction extends InvisibleAction {
 
     }
 
-}
+    /**
+     * Exposes this object to the remote API.
+     */
+    public Api getApi() {
+        return new Api(this);
+    }
 
+    @Override
+    public String getIconFileName() {
+        return "clipboard.png";
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "Custom Build Properties";
+    }
+
+    @Override
+    public String getUrlName() {
+        return "custombuildproperties";
+    }
+
+
+    public void doGet(StaplerRequest req, StaplerResponse rsp,
+                      @QueryParameter(required = true) String key) throws IOException, ServletException {
+        setHeaders(rsp);
+        rsp.setContentType("text/plain");
+        Object value = properties.get(key);
+        rsp.getWriter().print(value);
+        rsp.getWriter().close();
+    }
+
+    public void doSet(StaplerRequest req, StaplerResponse rsp,
+                      @QueryParameter(required = true) String key, @QueryParameter(required = true) String value, @QueryParameter String valueType) throws Exception {
+        Object newValue;
+        if (valueType != null) {
+            Class<?> valueClass = Thread.currentThread().getContextClassLoader().loadClass(valueType);
+            newValue = valueClass.getConstructor(String.class).newInstance(value);
+        } else {
+            newValue = value;
+        }
+
+        Object oldValue;
+        Run run = req.findAncestorObject(Run.class);
+        synchronized (run) {
+            oldValue = properties.put(key, newValue);
+            run.save();
+        }
+
+        setHeaders(rsp);
+        rsp.setContentType("text/plain");
+        rsp.getWriter().print(oldValue);
+        rsp.getWriter().close();
+    }
+
+    private void setHeaders(StaplerResponse rsp) {
+        rsp.setHeader("X-Jenkins", Jenkins.VERSION);
+        rsp.setHeader("X-Jenkins-Session", Jenkins.SESSION_HASH);
+    }
+
+}
