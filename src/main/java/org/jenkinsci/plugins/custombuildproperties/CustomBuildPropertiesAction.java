@@ -28,12 +28,14 @@ import hudson.model.Action;
 import hudson.model.Api;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
+import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.custombuildproperties.table.CbpTable;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -215,6 +217,15 @@ public class CustomBuildPropertiesAction implements Action {
         rsp.setContentType("text/plain");
         rsp.getWriter().print(oldValue);
         rsp.getWriter().close();
+    }
+
+    @RequirePOST
+    public void doSetPost(StaplerRequest req, StaplerResponse rsp) throws Exception {
+        JSONObject submittedForm = req.getSubmittedForm();
+        String key = submittedForm.getString("key");
+        String value = submittedForm.getString("value");
+        String valueType = submittedForm.getString("valueType");
+        doSet(req, rsp, key, value, valueType);
     }
 
     private void setHeaders(StaplerResponse rsp) {
