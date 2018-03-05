@@ -17,7 +17,7 @@
  */
 
 properties([
-		buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '3', daysToKeepStr: '', numToKeepStr: '5')),
+		buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '3', daysToKeepStr: '', numToKeepStr: '20')),
 		parameters([
 				string(name: 'releaseVersion', defaultValue: '', description: 'Release version - if set a release will be build, otherwise normal CI'),
 				string(name: 'developmentVersion', defaultValue: '', description: 'Next development version _without_ SNAPSHOT - if set POMs will be updated after build'),
