@@ -27,7 +27,7 @@ THE SOFTWARE.
     <t:summary icon="clipboard.png">
         <h3>Custom Build Properties</h3>
         <j:forEach items="${it.viewTables}" var="viewTable">
-            <table class="sortable pane bigtable">
+            <table class="sortable pane bigtable" style="width:unset">
                 <tr>
                     <th>${viewTable.title}</th>
                     <j:forEach items="${viewTable.headers}" var="viewTableHeader">
@@ -43,6 +43,7 @@ THE SOFTWARE.
                     </tr>
                 </j:forEach>
             </table>
+            <br/>
         </j:forEach>
     </t:summary>
 </j:jelly>
