@@ -35,7 +35,7 @@
         <l:main-panel>
             <h3>Custom Build Properties (Build ${build.displayName})</h3>
             <j:forEach items="${it.viewTables}" var="viewTable">
-                <table class="sortable pane bigtable" style="width:unset">
+                <table id="customBuildPropertiesTable" class="sortable pane bigtable" style="width:unset">
                     <tr>
                         <th>${viewTable.title}</th>
                         <j:forEach items="${viewTable.headers}" var="viewTableHeader">
