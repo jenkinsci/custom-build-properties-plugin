@@ -189,11 +189,8 @@ public class CustomBuildPropertiesAction implements Action {
 
     public void doGet(StaplerRequest req, StaplerResponse rsp,
                       @QueryParameter(required = true) String key) throws IOException, ServletException {
-        setHeaders(rsp);
-        rsp.setContentType("text/plain");
         Object value = properties.get(key);
-        rsp.getWriter().print(value);
-        rsp.getWriter().close();
+        writeValue(rsp, value);
     }
 
     public void doSet(StaplerRequest req, StaplerResponse rsp,
@@ -213,10 +210,7 @@ public class CustomBuildPropertiesAction implements Action {
             run.save();
         }
 
-        setHeaders(rsp);
-        rsp.setContentType("text/plain");
-        rsp.getWriter().print(oldValue);
-        rsp.getWriter().close();
+        writeValue(rsp, oldValue);
     }
 
     @RequirePOST
@@ -226,6 +220,13 @@ public class CustomBuildPropertiesAction implements Action {
         String value = submittedForm.getString("value");
         String valueType = submittedForm.getString("valueType");
         doSet(req, rsp, key, value, valueType);
+    }
+
+    private void writeValue(StaplerResponse rsp, Object value) throws IOException {
+        setHeaders(rsp);
+        rsp.setContentType("text/plain;charset=UTF-8");
+        rsp.getWriter().print(value);
+        rsp.getWriter().close();
     }
 
     private void setHeaders(StaplerResponse rsp) {
