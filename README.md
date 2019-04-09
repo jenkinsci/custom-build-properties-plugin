@@ -3,9 +3,12 @@
 ## Purpose
 
 Add custom properties to a build.
-It provides a Pipeline step to do so.
+There are different ways of setting and getting them:
+* Pipeline steps: setCustomBuildProperty, getCustomBuildProperty
+* Exported
+* API (GET, SET, POST)
 
-These properties are displayed on the build summary page and can be also accessed for example via Scriptler to feed a build monitor.
+The properties are displayed on the build summary page.
 
 ## License
 [MIT License](http://opensource.org/licenses/MIT)
