@@ -8,6 +8,8 @@
 		<version>2.21</version>
 		<relativePath />
 	</parent>
+	
+	<groupId>io.jenkins.plugins</groupId>
 	<artifactId>custom-build-properties</artifactId>
 	<version>1.8-SNAPSHOT</version>
 	<packaging>hpi</packaging>
