@@ -27,6 +27,7 @@ package org.jenkinsci.plugins.custombuildproperties;
 import hudson.model.Action;
 import hudson.model.Api;
 import hudson.model.Run;
+import hudson.security.Permission;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.custombuildproperties.table.CbpTable;
@@ -189,12 +190,18 @@ public class CustomBuildPropertiesAction implements Action {
 
     public void doGet(StaplerRequest req, StaplerResponse rsp,
                       @QueryParameter(required = true) String key) throws IOException, ServletException {
+        Run run = req.findAncestorObject(Run.class);
+        run.checkPermission(Permission.READ);
+
         Object value = properties.get(key);
         writeValue(rsp, value);
     }
 
     public void doSet(StaplerRequest req, StaplerResponse rsp,
                       @QueryParameter(required = true) String key, @QueryParameter(required = true) String value, @QueryParameter String valueType) throws Exception {
+        Run run = req.findAncestorObject(Run.class);
+        run.checkPermission(Permission.WRITE);
+
         Object newValue;
         if (valueType != null) {
             Class<?> valueClass = Thread.currentThread().getContextClassLoader().loadClass(valueType);
@@ -204,7 +211,6 @@ public class CustomBuildPropertiesAction implements Action {
         }
 
         Object oldValue;
-        Run run = req.findAncestorObject(Run.class);
         synchronized (run) {
             oldValue = properties.put(key, newValue);
             run.save();
@@ -215,6 +221,7 @@ public class CustomBuildPropertiesAction implements Action {
 
     @RequirePOST
     public void doSetPost(StaplerRequest req, StaplerResponse rsp) throws Exception {
+        // Permission check delegated to doSet
         JSONObject submittedForm = req.getSubmittedForm();
         String key = submittedForm.getString("key");
         String value = submittedForm.getString("value");
