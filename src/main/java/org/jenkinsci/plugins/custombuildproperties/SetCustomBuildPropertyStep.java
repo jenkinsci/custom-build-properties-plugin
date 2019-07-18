@@ -24,10 +24,6 @@
 
 package org.jenkinsci.plugins.custombuildproperties;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.logging.Logger;
-
 import hudson.Extension;
 import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.steps.Step;
@@ -38,111 +34,115 @@ import org.jenkinsci.plugins.workflow.steps.SynchronousStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.logging.Logger;
+
 /**
  *
  */
 public final class SetCustomBuildPropertyStep extends Step {
 
-	private static final Logger LOGGER = Logger.getLogger(SetCustomBuildPropertyStep.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(SetCustomBuildPropertyStep.class.getName());
 
-	private final String key;
-	private final Object value;
-	private boolean onlySetIfAbsent;
+    private final String key;
+    private final Object value;
+    private boolean onlySetIfAbsent;
 
-	@DataBoundConstructor
-	public SetCustomBuildPropertyStep(String key, Object value) {
-		super();
+    @DataBoundConstructor
+    public SetCustomBuildPropertyStep(String key, Object value) {
+        super();
 
-		this.key = key;
-		this.value = value;
-	}
+        this.key = key;
+        this.value = value;
+    }
 
-	public String getKey() {
-		return key;
-	}
+    protected static void runLogic(String key, Object value, boolean onlySetIfAbsent, Run<?, ?> run) throws Exception {
+        synchronized (run) {
+            final CustomBuildPropertiesAction action;
+            final CustomBuildPropertiesAction actionMayBeNull = run.getAction(CustomBuildPropertiesAction.class);
+            if (actionMayBeNull != null) {
+                action = actionMayBeNull;
+            } else {
+                action = new CustomBuildPropertiesAction();
+            }
 
-	public Object getValue() {
-		return value;
-	}
+            if (onlySetIfAbsent) {
+                action.setPropertyIfAbsent(key, value);
+            } else {
+                action.setProperty(key, value);
+            }
 
-	public boolean isOnlySetIfAbsent() {
-		return onlySetIfAbsent;
-	}
+            if (actionMayBeNull != null) {
+                run.save();
+            } else {
+                run.addAction(action);
+            }
+        }
+    }
 
-	@DataBoundSetter
-	public void setOnlySetIfAbsent(final boolean onlySetIfAbsent) {
-		this.onlySetIfAbsent = onlySetIfAbsent;
-	}
+    public String getKey() {
+        return key;
+    }
 
-	@Override
-	public StepExecution start(final StepContext context) throws Exception {
-		return new Execution(this, context);
-	}
+    public Object getValue() {
+        return value;
+    }
 
-	@Extension
-	public static final class DescriptorImpl extends StepDescriptor {
+    public boolean isOnlySetIfAbsent() {
+        return onlySetIfAbsent;
+    }
 
-		@Override
-		public String getDisplayName() {
-			return "Sets custom build property";
-		}
+    @DataBoundSetter
+    public void setOnlySetIfAbsent(final boolean onlySetIfAbsent) {
+        this.onlySetIfAbsent = onlySetIfAbsent;
+    }
 
-		@Override
-		public String getFunctionName() {
-			return "setCustomBuildProperty";
-		}
+    @Override
+    public StepExecution start(final StepContext context) throws Exception {
+        return new Execution(this, context);
+    }
 
-		@Override
-		public Set<? extends Class<?>> getRequiredContext() {
-			return Collections.singleton(Run.class);
-		}
+    @Extension
+    public static final class DescriptorImpl extends StepDescriptor {
 
-	}
+        @Override
+        public String getDisplayName() {
+            return "Sets custom build property";
+        }
 
-	public static final class Execution extends SynchronousStepExecution<Void> {
+        @Override
+        public String getFunctionName() {
+            return "setCustomBuildProperty";
+        }
 
-		private static final long serialVersionUID = 1L;
+        @Override
+        public Set<? extends Class<?>> getRequiredContext() {
+            return Collections.singleton(Run.class);
+        }
 
-		private transient final SetCustomBuildPropertyStep step;
+    }
 
-		public Execution(final SetCustomBuildPropertyStep step, final StepContext context) {
-			super(context);
-			this.step = step;
-		}
+    public static final class Execution extends SynchronousStepExecution<Void> {
 
-		@Override
-		protected Void run() throws Exception {
-			final Run run = getContext().get(Run.class);
+        private static final long serialVersionUID = 1L;
 
-			runLogic(step.getKey(), step.getValue(), step.isOnlySetIfAbsent(), run);
+        private transient final SetCustomBuildPropertyStep step;
 
-			return null;
-		}
+        public Execution(final SetCustomBuildPropertyStep step, final StepContext context) {
+            super(context);
+            this.step = step;
+        }
 
-	}
+        @Override
+        protected Void run() throws Exception {
+            final Run run = getContext().get(Run.class);
 
-	protected static void runLogic(String key, Object value, boolean onlySetIfAbsent, Run<?,?> run) throws Exception {
-		synchronized (run) {
-			final CustomBuildPropertiesAction action;
-			final CustomBuildPropertiesAction actionMayBeNull = run.getAction(CustomBuildPropertiesAction.class);
-			if (actionMayBeNull != null) {
-				action = actionMayBeNull;
-			} else {
-				action = new CustomBuildPropertiesAction();
-			}
+            runLogic(step.getKey(), step.getValue(), step.isOnlySetIfAbsent(), run);
 
-			if (onlySetIfAbsent) {
-				action.setPropertyIfAbsent(key, value);
-			} else {
-				action.setProperty(key, value);
-			}
+            return null;
+        }
 
-			if (actionMayBeNull != null) {
-				run.save();
-			} else {
-				run.addAction(action);
-			}
-		}
-	}
+    }
 
 }
