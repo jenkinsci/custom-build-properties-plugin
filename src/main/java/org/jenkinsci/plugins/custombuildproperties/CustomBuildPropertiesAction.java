@@ -187,7 +187,6 @@ public class CustomBuildPropertiesAction implements Action {
         return "custombuildproperties";
     }
 
-
     public void doGet(StaplerRequest req, StaplerResponse rsp,
                       @QueryParameter(required = true) String key) throws IOException, ServletException {
         Run run = req.findAncestorObject(Run.class);
@@ -197,18 +196,17 @@ public class CustomBuildPropertiesAction implements Action {
         writeValue(rsp, value);
     }
 
-    public void doSet(StaplerRequest req, StaplerResponse rsp,
-                      @QueryParameter(required = true) String key, @QueryParameter(required = true) String value, @QueryParameter String valueType) throws Exception {
+    @RequirePOST
+    public void doSet(StaplerRequest req, StaplerResponse rsp) throws Exception {
         Run run = req.findAncestorObject(Run.class);
         run.checkPermission(Permission.WRITE);
 
-        Object newValue;
-        if (valueType != null) {
-            Class<?> valueClass = Thread.currentThread().getContextClassLoader().loadClass(valueType);
-            newValue = valueClass.getConstructor(String.class).newInstance(value);
-        } else {
-            newValue = value;
-        }
+        JSONObject submittedForm = req.getSubmittedForm();
+        String key = submittedForm.getString("key");
+        String value = submittedForm.getString("value");
+        String valueType = submittedForm.optString("valueType", null);
+
+        Object newValue = resolveType(value, valueType);
 
         Object oldValue;
         synchronized (run) {
@@ -219,14 +217,25 @@ public class CustomBuildPropertiesAction implements Action {
         writeValue(rsp, oldValue);
     }
 
+    /**
+     * @deprecated Use {@link #doSet(StaplerRequest, StaplerResponse)} instead.
+     */
+    @Deprecated
     @RequirePOST
     public void doSetPost(StaplerRequest req, StaplerResponse rsp) throws Exception {
         // Permission check delegated to doSet
-        JSONObject submittedForm = req.getSubmittedForm();
-        String key = submittedForm.getString("key");
-        String value = submittedForm.getString("value");
-        String valueType = submittedForm.getString("valueType");
-        doSet(req, rsp, key, value, valueType);
+        doSet(req, rsp);
+    }
+
+    private Object resolveType(String value, String type) throws Exception {
+        Object result;
+        if (type != null) {
+            Class<?> valueClass = Thread.currentThread().getContextClassLoader().loadClass(type);
+            result = valueClass.getConstructor(String.class).newInstance(value);
+        } else {
+            result = value;
+        }
+        return result;
     }
 
     private void writeValue(StaplerResponse rsp, Object value) throws IOException {
