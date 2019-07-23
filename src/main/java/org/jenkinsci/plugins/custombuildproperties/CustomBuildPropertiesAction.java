@@ -30,6 +30,7 @@ import hudson.model.Run;
 import hudson.security.Permission;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.BooleanUtils;
 import org.jenkinsci.plugins.custombuildproperties.table.CbpTable;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -39,13 +40,23 @@ import org.kohsuke.stapler.export.ExportedBean;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.servlet.ServletException;
+import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -54,6 +65,33 @@ import java.util.regex.PatternSyntaxException;
 public class CustomBuildPropertiesAction implements Action {
 
     public static final String CBP_TABLE_PREFIX = "_cbp_table_";
+
+    private static final Map<String, Function<String, ?>> SUPPORTED_REMOTE_TYPES;
+
+    private static <T> void addRemoteType(Map<String, Function<String, ?>> map, Class<T> clazz, Function<String, T> parser) {
+        map.put(clazz.getName(), parser);
+    }
+
+    static {
+        Map<String, Function<String, ?>> map = new LinkedHashMap<>();
+        addRemoteType(map, String.class, string -> string);
+        addRemoteType(map, Boolean.class, BooleanUtils::toBoolean);
+        // numbers
+        addRemoteType(map, Byte.class, Byte::parseByte);
+        addRemoteType(map, Short.class, Short::parseShort);
+        addRemoteType(map, Integer.class, Integer::parseInt);
+        addRemoteType(map, Long.class, Long::parseLong);
+        addRemoteType(map, Float.class, Float::parseFloat);
+        addRemoteType(map, Double.class, Double::parseDouble);
+        addRemoteType(map, BigInteger.class, BigInteger::new);
+        addRemoteType(map, BigDecimal.class, BigDecimal::new);
+        // dates and times via ISO-8601 format
+        addRemoteType(map, Date.class, string -> DatatypeConverter.parseDateTime(string).getTime());
+        addRemoteType(map, LocalTime.class, LocalTime::parse);
+        addRemoteType(map, LocalDate.class, LocalDate::parse);
+        addRemoteType(map, LocalDateTime.class, LocalDateTime::parse);
+        SUPPORTED_REMOTE_TYPES = Collections.unmodifiableMap(map);
+    }
 
     private final Map<String, Object> properties = new HashMap<>();
 
@@ -211,7 +249,7 @@ public class CustomBuildPropertiesAction implements Action {
         String value = submittedForm.getString("value");
         String valueType = submittedForm.optString("valueType", null);
 
-        Object newValue = resolveType(value, valueType);
+        Object newValue = parseRemoteValue(value, valueType);
 
         Object oldValue;
         synchronized (run) {
@@ -232,15 +270,17 @@ public class CustomBuildPropertiesAction implements Action {
         doSet(req, rsp);
     }
 
-    private Object resolveType(String value, String type) throws Exception {
-        Object result;
-        if (type != null) {
-            Class<?> valueClass = Thread.currentThread().getContextClassLoader().loadClass(type);
-            result = valueClass.getConstructor(String.class).newInstance(value);
-        } else {
-            result = value;
+    private Object parseRemoteValue(String value, String valueType) {
+        if (valueType == null) {
+            return value;
         }
-        return result;
+
+        Function<String, ?> parser = SUPPORTED_REMOTE_TYPES.get(valueType);
+        if (parser == null) {
+            throw new IllegalArgumentException("Unsupported valueType: " + valueType);
+        }
+
+        return parser.apply(value);
     }
 
     private void writeValue(StaplerResponse rsp, Object value) throws IOException {
