@@ -22,7 +22,7 @@
 
     <name>Custom Build Properties Plugin</name>
     <description>Add custom properties to a build</description>
-    <url>https://wiki.jenkins-ci.org/display/JENKINS/CustomBuildPropertiesPlugin</url>
+    <url>https://wiki.jenkins.io/display/JENKINS/Custom+Build+Properties+Plugin</url>
 
     <licenses>
         <license>
