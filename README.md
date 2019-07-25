@@ -6,7 +6,7 @@ Add custom properties to a build.
 There are different ways of setting and getting them:
 * Pipeline steps: setCustomBuildProperty, getCustomBuildProperty
 * Exported
-* API (GET, SET, POST)
+* API (GET, POST)
 
 The properties are displayed on the build summary page.
 
