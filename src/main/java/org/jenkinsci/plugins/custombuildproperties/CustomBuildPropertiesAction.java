@@ -24,11 +24,11 @@
 
 package org.jenkinsci.plugins.custombuildproperties;
 
-import hudson.model.Action;
 import hudson.model.Api;
 import hudson.model.Run;
 import hudson.security.Permission;
 import jenkins.model.Jenkins;
+import jenkins.model.RunAction2;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.BooleanUtils;
 import org.jenkinsci.plugins.custombuildproperties.table.CbpTable;
@@ -62,7 +62,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 @ExportedBean
-public class CustomBuildPropertiesAction implements Action {
+public class CustomBuildPropertiesAction implements RunAction2 {
 
     public static final String CBP_TABLE_PREFIX = "_cbp_table_";
 
@@ -95,6 +95,8 @@ public class CustomBuildPropertiesAction implements Action {
 
     private final Map<String, Object> properties = new HashMap<>();
 
+    private transient Run<?, ?> run;
+
     public CustomBuildPropertiesAction() {
         super();
     }
@@ -118,18 +120,12 @@ public class CustomBuildPropertiesAction implements Action {
         }
     }
 
-    public void setProperty(String key, Object value) {
-        synchronized (properties) {
-            properties.put(key, value);
-        }
+    public Object setProperty(String key, Object newValue) {
+        return setPropertyInternal(key, newValue, false, true);
     }
 
-    public void setPropertyIfAbsent(String key, Object value) {
-        synchronized (properties) {
-            if (!properties.containsKey(key)) {
-                properties.put(key, value);
-            }
-        }
+    public Object setPropertyIfAbsent(String key, Object newValue) {
+        return setPropertyInternal(key, newValue, true, true);
     }
 
     public List<CbpTable> getViewTables() {
@@ -142,6 +138,16 @@ public class CustomBuildPropertiesAction implements Action {
         fillViewTables(sortedProperties, tables);
 
         return tables;
+    }
+
+    @Override
+    public void onAttached(Run<?, ?> run) {
+        this.run = run;
+    }
+
+    @Override
+    public void onLoad(Run<?, ?> run) {
+        this.run = run;
     }
 
     private List<CbpTable> createTables(Map<String, Object> workProperties) {
@@ -173,7 +179,6 @@ public class CustomBuildPropertiesAction implements Action {
     }
 
     private void fillViewTables(Map<String, Object> workProperties, List<CbpTable> tables) {
-
         Iterator<Map.Entry<String, Object>> propertiesI = workProperties.entrySet().iterator();
         while (propertiesI.hasNext()) {
             Map.Entry<String, Object> property = propertiesI.next();
@@ -205,7 +210,6 @@ public class CustomBuildPropertiesAction implements Action {
         for (CbpTable table : tables) {
             table.processRaw();
         }
-
     }
 
     /**
@@ -232,16 +236,14 @@ public class CustomBuildPropertiesAction implements Action {
 
     public void doGet(StaplerRequest req, StaplerResponse rsp,
                       @QueryParameter(required = true) String key) throws IOException, ServletException {
-        Run run = req.findAncestorObject(Run.class);
         run.checkPermission(Permission.READ);
 
-        Object value = properties.get(key);
+        Object value = getProperty(key);
         writeValue(rsp, value);
     }
 
     @RequirePOST
     public void doSet(StaplerRequest req, StaplerResponse rsp) throws Exception {
-        Run run = req.findAncestorObject(Run.class);
         run.checkPermission(Permission.WRITE);
 
         JSONObject submittedForm = req.getSubmittedForm();
@@ -253,9 +255,10 @@ public class CustomBuildPropertiesAction implements Action {
 
         Object oldValue;
         synchronized (run) {
-            oldValue = properties.put(key, newValue);
+            oldValue = setPropertyInternal(key, newValue, false, false);
             run.save();
         }
+        CustomBuildPropertiesListener.fireChanged(run, key, oldValue, newValue);
 
         writeValue(rsp, oldValue);
     }
@@ -293,6 +296,20 @@ public class CustomBuildPropertiesAction implements Action {
     private void setHeaders(StaplerResponse rsp) {
         rsp.setHeader("X-Jenkins", Jenkins.VERSION);
         rsp.setHeader("X-Jenkins-Session", Jenkins.SESSION_HASH);
+    }
+
+    private Object setPropertyInternal(String key, Object newValue, boolean onlyIfAbsent, boolean fireEvent) {
+        Object oldValue;
+        synchronized (properties) {
+            if (onlyIfAbsent && properties.containsKey(key)) {
+                return null;
+            }
+            oldValue = properties.put(key, newValue);
+        }
+        if (fireEvent) {
+            CustomBuildPropertiesListener.fireChanged(run, key, oldValue, newValue);
+        }
+        return oldValue;
     }
 
 }
