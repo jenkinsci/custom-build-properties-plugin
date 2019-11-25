@@ -45,6 +45,27 @@ public final class SetCustomBuildPropertyStep extends Step {
 
     private static final Logger LOGGER = Logger.getLogger(SetCustomBuildPropertyStep.class.getName());
 
+    protected static void runLogic(String key, Object value, boolean onlySetIfAbsent, Run<?, ?> run) throws Exception {
+        synchronized (run) {
+            final CustomBuildPropertiesAction action;
+            final CustomBuildPropertiesAction actionMayBeNull = run.getAction(CustomBuildPropertiesAction.class);
+            if (actionMayBeNull != null) {
+                action = actionMayBeNull;
+            } else {
+                action = new CustomBuildPropertiesAction();
+                run.addAction(action);
+            }
+
+            if (onlySetIfAbsent) {
+                action.setPropertyIfAbsent(key, value);
+            } else {
+                action.setProperty(key, value);
+            }
+
+            run.save();
+        }
+    }
+
     private final String key;
     private final Object value;
     private boolean onlySetIfAbsent;
@@ -55,30 +76,6 @@ public final class SetCustomBuildPropertyStep extends Step {
 
         this.key = key;
         this.value = value;
-    }
-
-    protected static void runLogic(String key, Object value, boolean onlySetIfAbsent, Run<?, ?> run) throws Exception {
-        synchronized (run) {
-            final CustomBuildPropertiesAction action;
-            final CustomBuildPropertiesAction actionMayBeNull = run.getAction(CustomBuildPropertiesAction.class);
-            if (actionMayBeNull != null) {
-                action = actionMayBeNull;
-            } else {
-                action = new CustomBuildPropertiesAction();
-            }
-
-            if (onlySetIfAbsent) {
-                action.setPropertyIfAbsent(key, value);
-            } else {
-                action.setProperty(key, value);
-            }
-
-            if (actionMayBeNull != null) {
-                run.save();
-            } else {
-                run.addAction(action);
-            }
-        }
     }
 
     public String getKey() {
@@ -108,7 +105,7 @@ public final class SetCustomBuildPropertyStep extends Step {
 
         @Override
         public String getDisplayName() {
-            return "Sets custom build property";
+            return "Set CustomBuildProperty";
         }
 
         @Override
@@ -127,18 +124,23 @@ public final class SetCustomBuildPropertyStep extends Step {
 
         private static final long serialVersionUID = 1L;
 
-        private transient final SetCustomBuildPropertyStep step;
+        private final String key;
+        private final Object value;
+        private final boolean onlySetIfAbsent;
 
-        public Execution(final SetCustomBuildPropertyStep step, final StepContext context) {
+        public Execution(SetCustomBuildPropertyStep step, StepContext context) {
             super(context);
-            this.step = step;
+
+            this.key = step.getKey();
+            this.value = step.getValue();
+            this.onlySetIfAbsent = step.isOnlySetIfAbsent();
         }
 
         @Override
         protected Void run() throws Exception {
             final Run run = getContext().get(Run.class);
 
-            runLogic(step.getKey(), step.getValue(), step.isOnlySetIfAbsent(), run);
+            runLogic(key, value, onlySetIfAbsent, run);
 
             return null;
         }

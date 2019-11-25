@@ -67,7 +67,7 @@ public final class GetCustomBuildPropertyStep extends Step {
 
         @Override
         public String getDisplayName() {
-            return "Get Custom BuildProperty";
+            return "Get CustomBuildProperty";
         }
 
         @Override
@@ -86,18 +86,17 @@ public final class GetCustomBuildPropertyStep extends Step {
 
         private static final long serialVersionUID = 1L;
 
-        private transient final GetCustomBuildPropertyStep step;
+        private final String key;
 
-        public Execution(final GetCustomBuildPropertyStep step, final StepContext context) {
+        public Execution(GetCustomBuildPropertyStep step, StepContext context) {
             super(context);
-            this.step = step;
+
+            this.key = step.getKey();
         }
 
         @Override
         protected Object run() throws Exception {
             Run run = getContext().get(Run.class);
-
-            final String key = step.getKey();
 
             while (true) {
                 run = run.getPreviousBuild();
