@@ -67,7 +67,7 @@ public final class GetCustomBuildPropertyStep extends Step {
 
         @Override
         public String getDisplayName() {
-            return "Get CustomBuildProperty";
+            return "Get custom build property";
         }
 
         @Override

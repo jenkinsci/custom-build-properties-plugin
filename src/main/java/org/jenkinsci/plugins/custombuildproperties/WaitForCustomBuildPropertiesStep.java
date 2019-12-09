@@ -89,7 +89,7 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
 
         @Override
         public String getDisplayName() {
-            return "Wait for CustomBuildProperties to be set";
+            return "Wait until specified custom build properties are set";
         }
 
         @Override
@@ -115,6 +115,7 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
 
         private transient volatile CustomBuildPropertiesListener listener;
         private transient volatile ScheduledFuture<?> task;
+        private transient volatile ScheduledFuture<?> timeoutTask;
 
         public Execution(WaitForCustomBuildPropertiesStep step, StepContext context) {
             super(context);
@@ -140,11 +141,29 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
 
         private boolean init() {
             if (!check()) {
+                scheduleTimeout();
                 installChangeEventListener();
                 scheduleCheck();
                 return false;
             }
             return true;
+        }
+
+        private void scheduleTimeout() {
+            if (timeoutTimeMillis > 0) {
+                timeoutTask = Timer.get().schedule(new Runnable() {
+                    @Override
+                    public void run() {
+                        synchronized (this) {
+                            if (alreadyCompleted) {
+                                return;
+                            }
+                            getContext().onFailure(new RuntimeException("Timeout"));
+                            complete();
+                        }
+                    }
+                }, timeoutTimeMillis, TimeUnit.MILLISECONDS);
+            }
         }
 
         private void installChangeEventListener() {
@@ -174,7 +193,7 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
                         scheduleCheck();
                     }
                 }
-            }, 1, TimeUnit.MINUTES);
+            }, 10, TimeUnit.MINUTES);
         }
 
         private boolean check() {
@@ -208,6 +227,9 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
                     }
                     if (task != null) {
                         task.cancel(false);
+                    }
+                    if (timeoutTask != null) {
+                        timeoutTask.cancel(false);
                     }
                 }
             }

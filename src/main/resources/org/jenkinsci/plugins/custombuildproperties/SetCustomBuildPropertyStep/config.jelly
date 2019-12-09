@@ -25,13 +25,7 @@ THE SOFTWARE.
 
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-    <f:entry field="key" title="Key">
-        <f:textbox/>
-    </f:entry>
-    <f:entry field="value" title="Value">
-        <f:textbox/>
-    </f:entry>
-    <f:entry field="onlySetIfAbsent" title="Only set if absent">
-        <f:checkbox/>
-    </f:entry>
+    <f:block>
+        <p>This is a step taking an Object as argument, so no snippet generation is available. See inline help for more information.</p>
+    </f:block>
 </j:jelly>
