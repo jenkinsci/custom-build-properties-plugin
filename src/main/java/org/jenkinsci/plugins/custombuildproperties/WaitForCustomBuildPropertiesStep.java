@@ -236,6 +236,10 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
         }
 
         private boolean customBuildPropertiesExists() throws Exception {
+            if (keys.isEmpty()) {
+                return true;
+            }
+
             Run run = getContext().get(Run.class);
 
             final CustomBuildPropertiesAction action = run.getAction(CustomBuildPropertiesAction.class);
