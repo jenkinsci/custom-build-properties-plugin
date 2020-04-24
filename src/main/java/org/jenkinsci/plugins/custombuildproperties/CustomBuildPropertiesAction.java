@@ -25,8 +25,8 @@
 package org.jenkinsci.plugins.custombuildproperties;
 
 import hudson.model.Api;
+import hudson.model.Item;
 import hudson.model.Run;
-import hudson.security.Permission;
 import jenkins.model.Jenkins;
 import jenkins.model.RunAction2;
 import net.sf.json.JSONObject;
@@ -236,7 +236,7 @@ public class CustomBuildPropertiesAction implements RunAction2 {
 
     public void doGet(StaplerRequest req, StaplerResponse rsp,
                       @QueryParameter(required = true) String key) throws IOException, ServletException {
-        run.checkPermission(Permission.READ);
+        run.checkPermission(Item.READ);
 
         Object value = getProperty(key);
         writeValue(rsp, value);
@@ -244,7 +244,7 @@ public class CustomBuildPropertiesAction implements RunAction2 {
 
     @RequirePOST
     public void doSet(StaplerRequest req, StaplerResponse rsp) throws Exception {
-        run.checkPermission(Permission.WRITE);
+        run.checkPermission(Run.UPDATE);
 
         JSONObject submittedForm = req.getSubmittedForm();
         String key = submittedForm.getString("key");
