@@ -29,7 +29,7 @@
         <java.level>8</java.level>
     </properties>
 
-    <url>https://wiki.jenkins.io/display/JENKINS/Custom+Build+Properties+Plugin</url>
+    <url>https://github.com/jenkinsci/custom-build-properties-plugin</url>
 
     <scm>
         <connection>scm:git:ssh://git@github.com/jenkinsci/custom-build-properties-plugin.git</connection>
