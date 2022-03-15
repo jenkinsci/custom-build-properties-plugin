@@ -20,3 +20,7 @@ Per default custom build properties are displayed as a key value table. In order
 
 ## License
 [MIT License](http://opensource.org/licenses/MIT)
+
+## Versioning
+
+This plugin uses automatic versioning with a manually controlled prefix.
