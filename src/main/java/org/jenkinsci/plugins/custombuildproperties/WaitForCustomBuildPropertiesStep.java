@@ -24,6 +24,7 @@
 
 package org.jenkinsci.plugins.custombuildproperties;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Run;
 import jenkins.util.Timer;
@@ -34,7 +35,6 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -88,6 +88,7 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
     @Extension
     public static final class DescriptorImpl extends StepDescriptor {
 
+        @NonNull
         @Override
         public String getDisplayName() {
             return "Wait until specified custom build properties are set";
@@ -136,7 +137,7 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
         }
 
         @Override
-        public void stop(@Nonnull Throwable cause) {
+        public void stop(@NonNull Throwable cause) {
             complete();
             getContext().onFailure(cause);
         }

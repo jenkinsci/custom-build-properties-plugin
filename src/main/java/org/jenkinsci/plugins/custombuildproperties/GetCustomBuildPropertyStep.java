@@ -24,6 +24,7 @@
 
 package org.jenkinsci.plugins.custombuildproperties;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.steps.Step;
@@ -65,6 +66,7 @@ public final class GetCustomBuildPropertyStep extends Step {
     @Extension
     public static final class DescriptorImpl extends StepDescriptor {
 
+        @NonNull
         @Override
         public String getDisplayName() {
             return "Get custom build property";

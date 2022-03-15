@@ -24,6 +24,7 @@
 
 package org.jenkinsci.plugins.custombuildproperties;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Run;
 import hudson.tasks.junit.CaseResult;
@@ -96,6 +97,7 @@ public final class SetJUnitCountStep extends Step {
     @Extension
     public static final class DescriptorImpl extends StepDescriptor {
 
+        @NonNull
         @Override
         public String getDisplayName() {
             return "Set junit test result counts as custom build properties";
