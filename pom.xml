@@ -11,7 +11,7 @@
 
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>custom-build-properties</artifactId>
-    <version>1.10.0-SNAPSHOT</version>
+    <version>1.9.2</version>
     <packaging>hpi</packaging>
 
     <name>Custom Build Properties Plugin</name>
@@ -35,7 +35,7 @@
         <connection>scm:git:ssh://git@github.com/jenkinsci/custom-build-properties-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/custom-build-properties-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/custom-build-properties-plugin</url>
-      <tag>HEAD</tag>
+      <tag>custom-build-properties-1.9.2</tag>
   </scm>
 
     <developers>
