@@ -34,7 +34,6 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -136,7 +135,7 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
         }
 
         @Override
-        public void stop(@Nonnull Throwable cause) {
+        public void stop(Throwable cause) {
             complete();
             getContext().onFailure(cause);
         }
