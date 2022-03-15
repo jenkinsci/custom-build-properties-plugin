@@ -137,6 +137,7 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
         @Override
         public void stop(@Nonnull Throwable cause) {
             complete();
+            getContext().onFailure(cause);
         }
 
         private boolean init() {
@@ -225,8 +226,9 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
                     if (listener != null) {
                         CustomBuildPropertiesListener.all().remove(listener);
                     }
-                    if (task != null) {
-                        task.cancel(false);
+                    if (checkTask != null) {
+                        checkTask.cancel(false);
+                        LOGGER.log(Level.FINEST, "complete - cancelled checkTask");
                     }
                     if (timeoutTask != null) {
                         timeoutTask.cancel(false);
