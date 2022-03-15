@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -114,7 +115,7 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
         private boolean alreadyCompleted;
 
         private transient volatile CustomBuildPropertiesListener listener;
-        private transient volatile ScheduledFuture<?> task;
+        private transient volatile ScheduledFuture<?> checkTask;
         private transient volatile ScheduledFuture<?> timeoutTask;
 
         public Execution(WaitForCustomBuildPropertiesStep step, StepContext context) {
@@ -155,6 +156,7 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
                 timeoutTask = Timer.get().schedule(new Runnable() {
                     @Override
                     public void run() {
+                        LOGGER.log(Level.FINEST, "scheduleTimeout.run");
                         synchronized (this) {
                             if (alreadyCompleted) {
                                 return;
@@ -179,6 +181,7 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
                 @Override
                 public void onCustomBuildPropertyChanged(Run run, String key, Object oldValue, Object newValue) {
                     if (run == relevantRun && keys.contains(key)) {
+                        LOGGER.log(Level.FINEST, "onCustomBuildPropertyChanged");
                         check();
                     }
                 }
@@ -187,9 +190,10 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
         }
 
         private void scheduleCheck() {
-            task = Timer.get().schedule(new Runnable() {
+            checkTask = Timer.get().schedule(new Runnable() {
                 @Override
                 public void run() {
+                    LOGGER.log(Level.FINEST, "scheduleCheck.run");
                     if (!check()) {
                         scheduleCheck();
                     }
@@ -202,15 +206,15 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
                 if (alreadyCompleted) {
                     return true;
                 }
-                boolean exists;
+                boolean allCustomBuildPropertiesExist;
                 try {
-                    exists = customBuildPropertiesExists();
+                    allCustomBuildPropertiesExist = allCustomBuildPropertiesExist();
                 } catch (Exception e) {
                     getContext().onFailure(e);
                     complete();
                     return true;
                 }
-                if (exists) {
+                if (allCustomBuildPropertiesExist) {
                     getContext().onSuccess(null);
                     complete();
                     return true;
@@ -221,10 +225,13 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
 
         private void complete() {
             synchronized (this) {
+                LOGGER.log(Level.FINEST, "complete: {0}", keys);
                 if (!alreadyCompleted) {
                     alreadyCompleted = true;
+                    LOGGER.log(Level.FINEST, "complete - alreadyCompleted = true");
                     if (listener != null) {
                         CustomBuildPropertiesListener.all().remove(listener);
+                        LOGGER.log(Level.FINEST, "complete - removed listener");
                     }
                     if (checkTask != null) {
                         checkTask.cancel(false);
@@ -232,13 +239,18 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
                     }
                     if (timeoutTask != null) {
                         timeoutTask.cancel(false);
+                        LOGGER.log(Level.FINEST, "complete - cancelled timeoutTask");
                     }
+                    LOGGER.log(Level.FINEST, "complete - done");
+                } else {
+                    LOGGER.log(Level.FINEST, "complete - alreadyCompleted: {0}", keys);
                 }
             }
         }
 
-        private boolean customBuildPropertiesExists() throws Exception {
+        private boolean allCustomBuildPropertiesExist() throws Exception {
             if (keys.isEmpty()) {
+                LOGGER.log(Level.FINEST, "customBuildPropertiesExists - keys empty");
                 return true;
             }
 
@@ -246,15 +258,18 @@ public final class WaitForCustomBuildPropertiesStep extends Step {
 
             final CustomBuildPropertiesAction action = run.getAction(CustomBuildPropertiesAction.class);
             if (action == null) {
+                LOGGER.log(Level.FINEST, "customBuildPropertiesExists - no action yet: {0}", keys);
                 return false;
             }
 
             for (String key : keys) {
                 if (!action.containsProperty(key)) {
+                    LOGGER.log(Level.FINEST, "customBuildPropertiesExists - key missing: {0} not in {1}", new Object[]{key, keys});
                     return false;
                 }
             }
 
+            LOGGER.log(Level.FINEST, "customBuildPropertiesExists - all keys found: {0}", keys);
             return true;
         }
 
