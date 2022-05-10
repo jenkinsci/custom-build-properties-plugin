@@ -40,13 +40,18 @@ import org.kohsuke.stapler.export.ExportedBean;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.servlet.ServletException;
-import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -86,10 +91,26 @@ public class CustomBuildPropertiesAction implements RunAction2 {
         addRemoteType(map, BigInteger.class, BigInteger::new);
         addRemoteType(map, BigDecimal.class, BigDecimal::new);
         // dates and times via ISO-8601 format
-        addRemoteType(map, Date.class, string -> DatatypeConverter.parseDateTime(string).getTime());
+        addRemoteType(map, Date.class, string -> {
+            TemporalAccessor parseBestResult = DateTimeFormatter.ISO_DATE_TIME.parseBest(string, ZonedDateTime::from, OffsetDateTime::from, LocalDateTime::from);
+            Instant instant;
+            if (parseBestResult instanceof ZonedDateTime) {
+                instant = ((ZonedDateTime) parseBestResult).toInstant();
+            } else if (parseBestResult instanceof OffsetDateTime) {
+                instant = ((OffsetDateTime) parseBestResult).toInstant();
+            } else if (parseBestResult instanceof LocalDateTime) {
+                instant = ((LocalDateTime) parseBestResult).atZone(ZoneId.systemDefault()).toInstant();
+            } else {
+                throw new RuntimeException("Unexpected parseBestResult=" + parseBestResult + " for " + string);
+            }
+            return Date.from(instant);
+        });
         addRemoteType(map, LocalTime.class, LocalTime::parse);
         addRemoteType(map, LocalDate.class, LocalDate::parse);
         addRemoteType(map, LocalDateTime.class, LocalDateTime::parse);
+        addRemoteType(map, Instant.class, Instant::parse);
+        addRemoteType(map, OffsetDateTime.class, OffsetDateTime::parse);
+        addRemoteType(map, ZonedDateTime.class, ZonedDateTime::parse);
         SUPPORTED_REMOTE_TYPES = Collections.unmodifiableMap(map);
     }
 
@@ -273,7 +294,10 @@ public class CustomBuildPropertiesAction implements RunAction2 {
         doSet(req, rsp);
     }
 
-    private Object parseRemoteValue(String value, String valueType) {
+    /**
+     * Only visible for testing.
+     */
+    Object parseRemoteValue(String value, String valueType) {
         if (valueType == null) {
             return value;
         }

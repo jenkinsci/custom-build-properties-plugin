@@ -27,6 +27,10 @@ package org.jenkinsci.plugins.custombuildproperties;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -93,6 +97,89 @@ public class CustomBuildPropertiesActionTest {
         testedAction.setProperty(SOME_KEY, SOME_VALUE);
         testedAction.setPropertyIfAbsent(SOME_KEY, SOME_OTHER_VALUE);
         assertEquals(SOME_VALUE, testedAction.getProperty(SOME_KEY));
+    }
+
+    @Test
+    public void test_parseRemoteValue_true() {
+        assertEquals(Boolean.TRUE, testedAction.parseRemoteValue("true", "java.lang.Boolean"));
+    }
+
+    @Test
+    public void test_parseRemoteValue_false() {
+        assertEquals(Boolean.FALSE, testedAction.parseRemoteValue("false", "java.lang.Boolean"));
+    }
+
+    @Test
+    public void test_parseRemoteValue_yes() {
+        assertEquals(Boolean.TRUE, testedAction.parseRemoteValue("yes", "java.lang.Boolean"));
+    }
+
+    @Test
+    public void test_parseRemoteValue_foo() {
+        assertEquals(Boolean.FALSE, testedAction.parseRemoteValue("foo", "java.lang.Boolean"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void test_parseRemoteValue() {
+        assertEquals(Boolean.FALSE, testedAction.parseRemoteValue("foo", "not.existing.Type"));
+    }
+
+    @Test
+    public void test_parseRemoteValue_42() {
+        assertEquals(42, testedAction.parseRemoteValue("42", "java.lang.Integer"));
+    }
+
+    @Test
+    public void test_parseRemoteValue_42L() {
+        assertEquals(42L, testedAction.parseRemoteValue("42", "java.lang.Long"));
+    }
+
+    @Test
+    public void test_parseRemoteValue_date1() {
+        TimeZone originalDefaultTimeZone = TimeZone.getDefault();
+        try {
+            TimeZone.setDefault(TimeZone.getTimeZone("CET"));
+            assertEquals(new GregorianCalendar(2001, Calendar.OCTOBER, 26, 21, 32, 52).getTime(),
+                    testedAction.parseRemoteValue("2001-10-26T21:32:52+02:00", "java.util.Date"));
+        } finally {
+            TimeZone.setDefault(originalDefaultTimeZone);
+        }
+    }
+
+    @Test
+    public void test_parseRemoteValue_date2() {
+        TimeZone originalDefaultTimeZone = TimeZone.getDefault();
+        try {
+            TimeZone.setDefault(TimeZone.getTimeZone("CET"));
+            assertEquals(new GregorianCalendar(2001, Calendar.OCTOBER, 26, 18, 32, 52).getTime(),
+                    testedAction.parseRemoteValue("2001-10-26T21:32:52+05:00", "java.util.Date"));
+        } finally {
+            TimeZone.setDefault(originalDefaultTimeZone);
+        }
+    }
+
+    @Test
+    public void test_parseRemoteValue_date3() {
+        TimeZone originalDefaultTimeZone = TimeZone.getDefault();
+        try {
+            TimeZone.setDefault(TimeZone.getTimeZone("CET"));
+            assertEquals(new GregorianCalendar(2001, Calendar.OCTOBER, 26, 23, 32, 52).getTime(),
+                    testedAction.parseRemoteValue("2001-10-26T21:32:52Z", "java.util.Date"));
+        } finally {
+            TimeZone.setDefault(originalDefaultTimeZone);
+        }
+    }
+
+    @Test
+    public void test_parseRemoteValue_date4() {
+        TimeZone originalDefaultTimeZone = TimeZone.getDefault();
+        try {
+            TimeZone.setDefault(TimeZone.getTimeZone("CET"));
+            assertEquals(new GregorianCalendar(2001, Calendar.OCTOBER, 26, 21, 32, 52).getTime(),
+                    testedAction.parseRemoteValue("2001-10-26T21:32:52", "java.util.Date"));
+        } finally {
+            TimeZone.setDefault(originalDefaultTimeZone);
+        }
     }
 
 }
