@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2017, Sebastian Hasait
+ * Copyright (c) 2022, Sebastian Hasait
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -188,9 +188,7 @@ public class CustomBuildPropertiesAction implements RunAction2 {
                     pattern = null;
                 }
                 if (pattern != null) {
-                    CbpTable table = new CbpTable();
-                    table.setTitle(title);
-                    table.setPattern(pattern);
+                    CbpTable table = new CbpTable(title, pattern);
                     result.add(table);
                     propertiesI.remove();
                 }
@@ -219,8 +217,7 @@ public class CustomBuildPropertiesAction implements RunAction2 {
         }
 
         if (!workProperties.isEmpty()) {
-            CbpTable table = new CbpTable();
-            table.setTitle("Key");
+            CbpTable table = new CbpTable("Key", null);
             tables.add(table);
 
             for (Map.Entry<String, Object> entry : workProperties.entrySet()) {

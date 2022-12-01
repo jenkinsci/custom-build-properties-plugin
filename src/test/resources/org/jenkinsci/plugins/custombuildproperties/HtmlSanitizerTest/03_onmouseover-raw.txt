@@ -1,0 +1,1 @@
+<b onmouseover=alert('XSS')>click me!</b>

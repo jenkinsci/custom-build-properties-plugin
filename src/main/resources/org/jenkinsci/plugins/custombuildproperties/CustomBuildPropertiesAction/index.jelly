@@ -23,7 +23,7 @@
   ~ THE SOFTWARE.
   -->
 
-<?jelly escape-by-default='false'?>
+<?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
     <l:layout title="${it.displayName}">
         <j:invokeStatic var="currentThread" className="java.lang.Thread" method="currentThread"/>
@@ -37,16 +37,16 @@
             <j:forEach items="${it.viewTables}" var="viewTable">
                 <table id="customBuildPropertiesTable" class="sortable pane bigtable" style="width:unset">
                     <tr>
-                        <th>${viewTable.title}</th>
+                        <th><j:out value="${viewTable.title}"/></th>
                         <j:forEach items="${viewTable.headers}" var="viewTableHeader">
-                            <th>${viewTableHeader.title}</th>
+                            <th><j:out value="${viewTableHeader.title}"/></th>
                         </j:forEach>
                     </tr>
                     <j:forEach items="${viewTable.rows}" var="viewTableRow">
                         <tr>
-                            <td>${viewTableRow.title}</td>
+                            <td><j:out value="${viewTableRow.title}"/></td>
                             <j:forEach items="${viewTableRow.cells}" var="viewTableCell">
-                                <td>${viewTableCell.value}</td>
+                                <td><j:out value="${viewTableCell.value}"/></td>
                             </j:forEach>
                         </tr>
                     </j:forEach>

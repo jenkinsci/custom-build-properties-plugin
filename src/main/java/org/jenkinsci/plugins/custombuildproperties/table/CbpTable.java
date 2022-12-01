@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2017, Sebastian Hasait
+ * Copyright (c) 2022, Sebastian Hasait
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,18 @@
 package org.jenkinsci.plugins.custombuildproperties.table;
 
 import org.apache.commons.lang.time.FastDateFormat;
+import org.jenkinsci.plugins.custombuildproperties.HtmlSanitizer;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 /**
@@ -36,21 +46,19 @@ public class CbpTable {
 
     private static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss EEE");
 
+    private final String title;
+
     private final Map<String, Map<String, Object>> rawData = new TreeMap<>();
     private final Set<String> rawColumns = new TreeSet<>();
 
     private Pattern pattern;
-    private String title;
 
     private List<CbpTableHeader> headers = new ArrayList<>();
 
     private List<CbpTableRow> rows = new ArrayList<>();
 
-    public Pattern getPattern() {
-        return pattern;
-    }
-
-    public void setPattern(Pattern pattern) {
+    public CbpTable(String title, Pattern pattern) {
+        this.title = sanitize(title);
         this.pattern = pattern;
     }
 
@@ -58,8 +66,8 @@ public class CbpTable {
         return title;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public Pattern getPattern() {
+        return pattern;
     }
 
     public CbpTableHeader createHeader() {
@@ -95,22 +103,26 @@ public class CbpTable {
 
         for (String columnName : rawColumns) {
             CbpTableHeader header = createHeader();
-            header.setTitle(columnName);
+            header.setTitle(sanitize(columnName));
         }
 
         for (Map.Entry<String, Map<String, Object>> rawE : rawData.entrySet()) {
             String rowName = rawE.getKey();
             Map<String, Object> rawCells = rawE.getValue();
             CbpTableRow row = createRow();
-            row.setTitle(rowName);
+            row.setTitle(sanitize(rowName));
             for (String columnName : rawColumns) {
                 CbpTableCell cell = row.createCell();
-                cell.setValue(rawFormat(rawCells.get(columnName)));
+                cell.setValue(sanitize(rawFormat(rawCells.get(columnName))));
             }
         }
 
         rawData.clear();
         rawColumns.clear();
+    }
+
+    private String sanitize(String content) {
+        return HtmlSanitizer.sanitize(content);
     }
 
     private String rawFormat(Object value) {
