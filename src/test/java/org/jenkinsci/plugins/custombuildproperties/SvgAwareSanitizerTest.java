@@ -31,7 +31,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class HtmlSanitizerTest {
+public class SvgAwareSanitizerTest {
 
     @Test
     public void test_01_svg() {
@@ -56,7 +56,7 @@ public class HtmlSanitizerTest {
     private void test(String name) {
         String raw = readResource(getClass(), "/" + name + "-raw.txt");
         String exp = readResource(getClass(), "/" + name + "-san.txt");
-        String san = HtmlSanitizer.sanitize(raw);
+        String san = SvgAwareSanitizer.sanitize(raw);
         Assert.assertEquals(exp, san);
     }
 

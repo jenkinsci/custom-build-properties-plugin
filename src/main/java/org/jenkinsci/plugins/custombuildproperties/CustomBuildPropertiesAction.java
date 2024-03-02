@@ -32,6 +32,7 @@ import jenkins.model.RunAction2;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.BooleanUtils;
 import org.jenkinsci.plugins.custombuildproperties.table.CbpTable;
+import org.jenkinsci.plugins.custombuildproperties.table.CbpTablesFactory;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
@@ -52,24 +53,21 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 @ExportedBean
 public class CustomBuildPropertiesAction implements RunAction2 {
 
     public static final String CBP_TABLE_PREFIX = "_cbp_table_";
+    public static final String CBP_SANITIZER_PREFIX = "_cbp_sanitizer_";
+    public static final String CBP_INTERNAL_SANITIZER = "internal";
 
     private static final Map<String, Function<String, ?>> SUPPORTED_REMOTE_TYPES;
 
@@ -150,15 +148,12 @@ public class CustomBuildPropertiesAction implements RunAction2 {
     }
 
     public List<CbpTable> getViewTables() {
-        Map<String, Object> sortedProperties = new TreeMap<>();
+        Map<String, Object> clonedProperties;
         synchronized (properties) {
-            sortedProperties.putAll(properties);
+            clonedProperties = new TreeMap<>(properties);
         }
 
-        List<CbpTable> tables = createTables(sortedProperties);
-        fillViewTables(sortedProperties, tables);
-
-        return tables;
+        return new CbpTablesFactory(clonedProperties, Jenkins.get().getMarkupFormatter()).createTables();
     }
 
     @Override
@@ -169,65 +164,6 @@ public class CustomBuildPropertiesAction implements RunAction2 {
     @Override
     public void onLoad(Run<?, ?> run) {
         this.run = run;
-    }
-
-    private List<CbpTable> createTables(Map<String, Object> workProperties) {
-        List<CbpTable> result = new ArrayList<>();
-
-        Iterator<Map.Entry<String, Object>> propertiesI = workProperties.entrySet().iterator();
-        while (propertiesI.hasNext()) {
-            Map.Entry<String, Object> property = propertiesI.next();
-            String key = property.getKey();
-            Object value = property.getValue();
-            if (key != null && value instanceof String && key.startsWith(CBP_TABLE_PREFIX)) {
-                String title = key.substring(CBP_TABLE_PREFIX.length());
-                Pattern pattern;
-                try {
-                    pattern = Pattern.compile((String) value);
-                } catch (PatternSyntaxException e) {
-                    pattern = null;
-                }
-                if (pattern != null) {
-                    CbpTable table = new CbpTable(title, pattern);
-                    result.add(table);
-                    propertiesI.remove();
-                }
-            }
-        }
-        return result;
-    }
-
-    private void fillViewTables(Map<String, Object> workProperties, List<CbpTable> tables) {
-        Iterator<Map.Entry<String, Object>> propertiesI = workProperties.entrySet().iterator();
-        while (propertiesI.hasNext()) {
-            Map.Entry<String, Object> property = propertiesI.next();
-            String key = property.getKey();
-            Object value = property.getValue();
-            if (key != null) {
-                for (CbpTable table : tables) {
-                    Matcher matcher = table.getPattern().matcher(key);
-                    if (matcher.matches() && matcher.groupCount() >= 2) {
-                        String rowName = matcher.group(1);
-                        String columnName = matcher.group(2);
-                        table.addRawData(rowName, columnName, value);
-                        propertiesI.remove();
-                    }
-                }
-            }
-        }
-
-        if (!workProperties.isEmpty()) {
-            CbpTable table = new CbpTable("Key", null);
-            tables.add(table);
-
-            for (Map.Entry<String, Object> entry : workProperties.entrySet()) {
-                table.addRawData(entry.getKey(), "Value", entry.getValue());
-            }
-        }
-
-        for (CbpTable table : tables) {
-            table.processRaw();
-        }
     }
 
     /**

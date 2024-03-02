@@ -38,15 +38,15 @@
                 <table id="customBuildPropertiesTable" class="sortable pane bigtable" style="width:unset">
                     <tr>
                         <th><j:out value="${viewTable.title}"/></th>
-                        <j:forEach items="${viewTable.headers}" var="viewTableHeader">
-                            <th><j:out value="${viewTableHeader.title}"/></th>
+                        <j:forEach items="${viewTable.columns}" var="viewTableColumn">
+                            <th><j:out value="${viewTableColumn.title}"/></th>
                         </j:forEach>
                     </tr>
                     <j:forEach items="${viewTable.rows}" var="viewTableRow">
                         <tr>
                             <td><j:out value="${viewTableRow.title}"/></td>
-                            <j:forEach items="${viewTableRow.cells}" var="viewTableCell">
-                                <td><j:out value="${viewTableCell.value}"/></td>
+                            <j:forEach items="${viewTable.columns}" var="viewTableColumn">
+                                <td><j:out value="${viewTableRow.getCellValue(viewTableColumn)}"/></td>
                             </j:forEach>
                         </tr>
                     </j:forEach>

@@ -24,9 +24,11 @@
 
 package org.jenkinsci.plugins.custombuildproperties.table;
 
+import hudson.markup.MarkupFormatter;
 import org.apache.commons.lang.time.FastDateFormat;
-import org.jenkinsci.plugins.custombuildproperties.HtmlSanitizer;
+import org.jenkinsci.plugins.custombuildproperties.SvgAwareSanitizer;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -34,9 +36,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 /**
@@ -46,20 +45,26 @@ public class CbpTable {
 
     private static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss EEE");
 
+    private final MarkupFormatter defaultMarkupFormatter;
+    private final Pattern pattern;
+    private final String name;
     private final String title;
 
-    private final Map<String, Map<String, Object>> rawData = new TreeMap<>();
-    private final Set<String> rawColumns = new TreeSet<>();
+    private final List<CbpTableColumn> columns = new ArrayList<>();
+    private final Map<String, CbpTableColumn> columnsByName = new HashMap<>();
+    private final List<CbpTableRow> rows = new ArrayList<>();
+    private final Map<String, CbpTableRow> rowsByName = new HashMap<>();
 
-    private Pattern pattern;
-
-    private List<CbpTableHeader> headers = new ArrayList<>();
-
-    private List<CbpTableRow> rows = new ArrayList<>();
-
-    public CbpTable(String title, Pattern pattern) {
-        this.title = sanitize(title);
+    public CbpTable(String name, Pattern pattern, MarkupFormatter defaultMarkupFormatter) {
+        this.defaultMarkupFormatter = defaultMarkupFormatter;
         this.pattern = pattern;
+        this.name = name;
+
+        this.title = sanitize(name, false);
+    }
+
+    public String getName() {
+        return name;
     }
 
     public String getTitle() {
@@ -70,59 +75,48 @@ public class CbpTable {
         return pattern;
     }
 
-    public CbpTableHeader createHeader() {
-        CbpTableHeader header = new CbpTableHeader();
-        headers.add(header);
-        return header;
-    }
-
-    public CbpTableRow createRow() {
-        CbpTableRow row = new CbpTableRow();
-        rows.add(row);
-        return row;
-    }
-
-    public List<CbpTableHeader> getHeaders() {
-        return Collections.unmodifiableList(headers);
+    public List<CbpTableColumn> getColumns() {
+        return Collections.unmodifiableList(columns);
     }
 
     public List<CbpTableRow> getRows() {
         return Collections.unmodifiableList(rows);
     }
 
-    public void addRawData(String rowName, String columnName, Object value) {
-        if (!rawData.containsKey(rowName)) {
-            rawData.put(rowName, new HashMap<String, Object>());
-        }
-        rawData.get(rowName).put(columnName, value);
-        rawColumns.add(columnName);
+    public void putValue(String rowName, String columnName, Object value, boolean sanitizeInternal) {
+        CbpTableColumn column = getOrCreateColumn(columnName);
+        CbpTableRow row = getOrCreateRow(rowName);
+        CbpTableCell cell = row.getOrCreateCell(column);
+        cell.setValue(sanitize(rawFormat(value), sanitizeInternal));
     }
 
-    public void processRaw() {
-        pattern = null;
-
-        for (String columnName : rawColumns) {
-            CbpTableHeader header = createHeader();
-            header.setTitle(sanitize(columnName));
-        }
-
-        for (Map.Entry<String, Map<String, Object>> rawE : rawData.entrySet()) {
-            String rowName = rawE.getKey();
-            Map<String, Object> rawCells = rawE.getValue();
-            CbpTableRow row = createRow();
-            row.setTitle(sanitize(rowName));
-            for (String columnName : rawColumns) {
-                CbpTableCell cell = row.createCell();
-                cell.setValue(sanitize(rawFormat(rawCells.get(columnName))));
-            }
-        }
-
-        rawData.clear();
-        rawColumns.clear();
+    private CbpTableColumn getOrCreateColumn(String columnName) {
+        return columnsByName.computeIfAbsent(columnName, notUsed -> {
+            CbpTableColumn column = new CbpTableColumn();
+            column.setTitle(sanitize(columnName, false));
+            columns.add(column);
+            return column;
+        });
     }
 
-    private String sanitize(String content) {
-        return HtmlSanitizer.sanitize(content);
+    private CbpTableRow getOrCreateRow(String rowName) {
+        return rowsByName.computeIfAbsent(rowName, notUsed -> {
+            CbpTableRow row = new CbpTableRow();
+            row.setTitle(sanitize(rowName, false));
+            rows.add(row);
+            return row;
+        });
+    }
+
+    String sanitize(String content, boolean internal) {
+        if (internal) {
+            return SvgAwareSanitizer.sanitize(content);
+        }
+        try {
+            return defaultMarkupFormatter.translate(content);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private String rawFormat(Object value) {

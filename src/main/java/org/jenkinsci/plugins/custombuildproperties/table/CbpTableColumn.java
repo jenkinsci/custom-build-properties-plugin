@@ -27,7 +27,7 @@ package org.jenkinsci.plugins.custombuildproperties.table;
 /**
  *
  */
-public class CbpTableHeader {
+public class CbpTableColumn {
 
     private String title;
 

@@ -24,28 +24,17 @@
 
 package org.jenkinsci.plugins.custombuildproperties.table;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
  */
 public class CbpTableRow {
 
+    private final Map<CbpTableColumn, CbpTableCell> cells = new HashMap<>();
+
     private String title;
-
-    private List<CbpTableCell> cells = new ArrayList<>();
-
-    public List<CbpTableCell> getCells() {
-        return Collections.unmodifiableList(cells);
-    }
-
-    public CbpTableCell createCell() {
-        CbpTableCell cell = new CbpTableCell();
-        cells.add(cell);
-        return cell;
-    }
 
     public String getTitle() {
         return title;
@@ -53,6 +42,19 @@ public class CbpTableRow {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public boolean isEmpty() {
+        return cells.isEmpty();
+    }
+
+    public String getCellValue(CbpTableColumn column) {
+        CbpTableCell cell = cells.get(column);
+        return cell != null ? cell.getValue() : "";
+    }
+
+    public CbpTableCell getOrCreateCell(CbpTableColumn column) {
+        return cells.computeIfAbsent(column, notUsed -> new CbpTableCell());
     }
 
 }

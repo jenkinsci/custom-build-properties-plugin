@@ -31,7 +31,7 @@ import org.owasp.html.Sanitizers;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class HtmlSanitizer {
+public class SvgAwareSanitizer {
 
     private static final Pattern EMPTY_ELEMENT_SYNTAX = Pattern.compile("<(polygon|path)(\\s[^/>]+)/>");
 
