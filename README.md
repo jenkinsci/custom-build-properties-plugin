@@ -27,7 +27,7 @@ Custom build properties can be used to display additional information to users.
 For this purpose keys and values can be formatted using HTML. It is even possible to embed SVG.
 The values are sanitized by default using the global Jenkins MarkupFormatter.
 
-SVG is not well supported by the existing MarkupFormatters therefore an internal one can be used by
+SVG is not well supported by the existing MarkupFormatters therefore an internal one (SvgAwareSanitizer) can be used by
 setting a custom build property using the special key `_cbp_sanitizer_<tablename>_<rowname>_<columnname>` and value `internal`.
 
 Example: `setCustomBuildProperty(key: '_cbp_sanitizer_Key_Activity-Graph_Value', value: 'internal')`
