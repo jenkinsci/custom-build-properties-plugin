@@ -18,12 +18,18 @@ The step waitForCustomBuildProperties can be used for synchronization in paralle
 
 Per default custom build properties are displayed as a key value table. In order to create a multi column table you need to add a regex matching two groups: 1st is the rowName, 2nd is the columnName. The regex is applied to each key. Add the regex as custom build property using the special key \_cbp_table\_\<tablename\>.
 
+Example: `setCustomBuildProperty(key: '_cbp_table_Activities', value: 'Activity-(.*?)-(.*)')`
+
 ### Formatting
 
 Custom build properties can be used to display additional information to users.
 For this purpose keys and values can be formatted using HTML. It is even possible to embed SVG.
-HTML and SVG is sanitized using OWASP.
-If more elements and attributes are needed, please create a PR.
+The values are sanitized by default using the global Jenkins MarkupFormatter.
+
+SVG is not well supported by the existing MarkupFormatters therefore an internal one can be used by
+setting a custom build property using the special key \_cbp_sanitizer\_\<tablename\>_\<rowname\>_\<columnname\> and value 'internal'.
+
+Example: `setCustomBuildProperty(key: '_cbp_sanitizer_Key_Activity-Graph_Value', value: 'internal')`
 
 ## License
 [MIT License](http://opensource.org/licenses/MIT)
