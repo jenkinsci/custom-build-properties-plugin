@@ -27,7 +27,9 @@
     <properties>
         <revision>2</revision>
         <changelist>999999-SNAPSHOT</changelist>
-        <jenkins.version>2.263.1</jenkins.version>
+        <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
+        <jenkins.baseline>2.263</jenkins.baseline>
+        <jenkins.version>${jenkins.baseline}.1</jenkins.version>
     </properties>
 
     <url>https://github.com/jenkinsci/custom-build-properties-plugin</url>
@@ -64,7 +66,7 @@
         <dependencies>
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-2.263.x</artifactId>
+                <artifactId>bom-${jenkins.baseline}.x</artifactId>
                 <version>984.vb5eaac999a7e</version>
                 <type>pom</type>
                 <scope>import</scope>
