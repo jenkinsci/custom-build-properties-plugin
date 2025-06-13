@@ -34,13 +34,13 @@ import org.apache.commons.lang.BooleanUtils;
 import org.jenkinsci.plugins.custombuildproperties.table.CbpTable;
 import org.jenkinsci.plugins.custombuildproperties.table.CbpTablesFactory;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -188,7 +188,7 @@ public class CustomBuildPropertiesAction implements RunAction2 {
         return "custombuildproperties";
     }
 
-    public void doGet(StaplerRequest req, StaplerResponse rsp,
+    public void doGet(StaplerRequest2 req, StaplerResponse2 rsp,
                       @QueryParameter(required = true) String key) throws IOException, ServletException {
         run.checkPermission(Item.READ);
 
@@ -197,7 +197,7 @@ public class CustomBuildPropertiesAction implements RunAction2 {
     }
 
     @RequirePOST
-    public void doSet(StaplerRequest req, StaplerResponse rsp) throws Exception {
+    public void doSet(StaplerRequest2 req, StaplerResponse2 rsp) throws Exception {
         run.checkPermission(Run.UPDATE);
 
         JSONObject submittedForm = req.getSubmittedForm();
@@ -218,11 +218,11 @@ public class CustomBuildPropertiesAction implements RunAction2 {
     }
 
     /**
-     * @deprecated Use {@link #doSet(StaplerRequest, StaplerResponse)} instead.
+     * @deprecated Use {@link #doSet(StaplerRequest2, StaplerResponse2)} instead.
      */
     @Deprecated
     @RequirePOST
-    public void doSetPost(StaplerRequest req, StaplerResponse rsp) throws Exception {
+    public void doSetPost(StaplerRequest2 req, StaplerResponse2 rsp) throws Exception {
         // Permission check delegated to doSet
         doSet(req, rsp);
     }
@@ -243,14 +243,14 @@ public class CustomBuildPropertiesAction implements RunAction2 {
         return parser.apply(value);
     }
 
-    private void writeValue(StaplerResponse rsp, Object value) throws IOException {
+    private void writeValue(StaplerResponse2 rsp, Object value) throws IOException {
         setHeaders(rsp);
         rsp.setContentType("text/plain;charset=UTF-8");
         rsp.getWriter().print(value);
         rsp.getWriter().close();
     }
 
-    private void setHeaders(StaplerResponse rsp) {
+    private void setHeaders(StaplerResponse2 rsp) {
         rsp.setHeader("X-Jenkins", Jenkins.VERSION);
         rsp.setHeader("X-Jenkins-Session", Jenkins.SESSION_HASH);
     }
