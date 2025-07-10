@@ -10,4 +10,4 @@ if [ -s "${SDKMAN_DIR}/bin/sdkman-init.sh" ]; then
     sdk env install
 fi
 
-mvn clean package
+mvn clean package "$@"

@@ -1,98 +1,92 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>plugin</artifactId>
-        <version>4.82</version>
-        <relativePath />
-    </parent>
+  <parent>
+    <groupId>org.jenkins-ci.plugins</groupId>
+    <artifactId>plugin</artifactId>
+    <version>5.18</version>
+    <relativePath/>
+  </parent>
 
-    <groupId>io.jenkins.plugins</groupId>
-    <artifactId>custom-build-properties</artifactId>
-    <version>${revision}.${changelist}</version>
-    <packaging>hpi</packaging>
+  <groupId>io.jenkins.plugins</groupId>
+  <artifactId>custom-build-properties</artifactId>
+  <version>${revision}.${changelist}</version>
+  <packaging>hpi</packaging>
 
-    <name>Custom Build Properties Plugin</name>
-    <description>Add custom properties to a build</description>
+  <name>Custom Build Properties Plugin</name>
+  <description>Add custom properties to a build</description>
+  <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
 
-    <licenses>
-        <license>
-            <name>MIT License</name>
-            <url>http://opensource.org/licenses/MIT</url>
-        </license>
-    </licenses>
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+    </license>
+  </licenses>
 
-    <properties>
-        <revision>2</revision>
-        <changelist>999999-SNAPSHOT</changelist>
-        <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
-        <jenkins.baseline>2.263</jenkins.baseline>
-        <jenkins.version>${jenkins.baseline}.1</jenkins.version>
-    </properties>
-
-    <url>https://github.com/jenkinsci/custom-build-properties-plugin</url>
-
-    <scm>
-        <connection>scm:git:ssh://git@github.com/jenkinsci/custom-build-properties-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/custom-build-properties-plugin.git</developerConnection>
-        <url>https://github.com/jenkinsci/custom-build-properties-plugin</url>
-      <tag>HEAD</tag>
+  <scm>
+    <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
+    <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
+    <tag>${scmTag}</tag>
+    <url>https://github.com/${gitHubRepo}</url>
   </scm>
 
-    <developers>
-        <developer>
-            <id>shasait</id>
-            <name>Sebastian Hasait</name>
-            <email>sebastian@hasait.de</email>
-        </developer>
-    </developers>
+  <properties>
+    <revision>3</revision>
+    <changelist>999999-SNAPSHOT</changelist>
+    <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
+    <jenkins.baseline>2.479</jenkins.baseline>
+    <jenkins.version>${jenkins.baseline}.3</jenkins.version>
+    <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
+  </properties>
 
-    <repositories>
-        <repository>
-            <id>repo.jenkins-ci.org</id>
-            <url>https://repo.jenkins-ci.org/public/</url>
-        </repository>
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>repo.jenkins-ci.org</id>
-            <url>https://repo.jenkins-ci.org/public/</url>
-        </pluginRepository>
-    </pluginRepositories>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-${jenkins.baseline}.x</artifactId>
-                <version>984.vb5eaac999a7e</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
+  <dependencyManagement>
     <dependencies>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins.workflow</groupId>
-            <artifactId>workflow-step-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>junit</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
-            <artifactId>owasp-java-html-sanitizer</artifactId>
-            <version>20240325.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+      <dependency>
+        <groupId>io.jenkins.tools.bom</groupId>
+        <artifactId>bom-${jenkins.baseline}.x</artifactId>
+        <version>5015.vb_52d36583443</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-step-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+      <artifactId>owasp-java-html-sanitizer</artifactId>
+      <version>20240325.1</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+  </dependencies>
+
+  <repositories>
+    <repository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
+
 </project>
