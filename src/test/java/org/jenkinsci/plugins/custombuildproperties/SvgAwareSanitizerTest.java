@@ -24,32 +24,33 @@
 
 package org.jenkinsci.plugins.custombuildproperties;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class SvgAwareSanitizerTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class SvgAwareSanitizerTest {
 
     @Test
-    public void test_01_svg() {
+    void test_01_svg() {
         test("01_svg");
     }
 
     @Test
-    public void test_02_script() {
+    void test_02_script() {
         test("02_script");
     }
 
     @Test
-    public void test_03_onmouseover() {
+    void test_03_onmouseover() {
         test("03_onmouseover");
     }
 
     @Test
-    public void test_04_img() {
+    void test_04_img() {
         test("04_img");
     }
 
@@ -57,7 +58,7 @@ public class SvgAwareSanitizerTest {
         String raw = readResource(getClass(), "/" + name + "-raw.txt");
         String exp = readResource(getClass(), "/" + name + "-san.txt");
         String san = SvgAwareSanitizer.sanitize(raw);
-        Assert.assertEquals(exp, san);
+        assertEquals(exp, san);
     }
 
     private String readResource(Class baseClass, String suffix) {
