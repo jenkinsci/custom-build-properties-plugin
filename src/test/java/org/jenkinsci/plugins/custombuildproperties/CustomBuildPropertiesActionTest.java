@@ -24,21 +24,22 @@
 
 package org.jenkinsci.plugins.custombuildproperties;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class CustomBuildPropertiesActionTest {
+class CustomBuildPropertiesActionTest {
 
     private static final String SOME_KEY = "SomeKey";
     private static final Object SOME_VALUE = 42;
@@ -46,13 +47,13 @@ public class CustomBuildPropertiesActionTest {
 
     private CustomBuildPropertiesAction testedAction;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         testedAction = new CustomBuildPropertiesAction();
     }
 
     @Test
-    public void test_constants() {
+    void test_constants() {
         assertNotNull(SOME_KEY);
         assertNotNull(SOME_VALUE);
         assertNotNull(SOME_OTHER_VALUE);
@@ -60,82 +61,83 @@ public class CustomBuildPropertiesActionTest {
     }
 
     @Test
-    public void test_containsProperty_null() {
+    void test_containsProperty_null() {
         assertFalse(testedAction.containsProperty(null));
     }
 
     @Test
-    public void test_containsProperty_notExistingKey() {
+    void test_containsProperty_notExistingKey() {
         assertFalse(testedAction.containsProperty(SOME_KEY));
     }
 
     @Test
-    public void test_containsProperty_existingKey() {
+    void test_containsProperty_existingKey() {
         testedAction.setProperty(SOME_KEY, SOME_VALUE);
         assertTrue(testedAction.containsProperty(SOME_KEY));
     }
 
     @Test
-    public void test_getProperty_notExistingKey() {
+    void test_getProperty_notExistingKey() {
         assertNull(testedAction.getProperty(SOME_KEY));
     }
 
     @Test
-    public void test_setProperty_getProperty() {
+    void test_setProperty_getProperty() {
         testedAction.setProperty(SOME_KEY, SOME_VALUE);
         assertEquals(SOME_VALUE, testedAction.getProperty(SOME_KEY));
     }
 
     @Test
-    public void test_setPropertyIfAbsent_setInitialValue() {
+    void test_setPropertyIfAbsent_setInitialValue() {
         testedAction.setPropertyIfAbsent(SOME_KEY, SOME_VALUE);
         assertEquals(SOME_VALUE, testedAction.getProperty(SOME_KEY));
     }
 
     @Test
-    public void test_setPropertyIfAbsent_notOverwritesAlreadySetValue() {
+    void test_setPropertyIfAbsent_notOverwritesAlreadySetValue() {
         testedAction.setProperty(SOME_KEY, SOME_VALUE);
         testedAction.setPropertyIfAbsent(SOME_KEY, SOME_OTHER_VALUE);
         assertEquals(SOME_VALUE, testedAction.getProperty(SOME_KEY));
     }
 
     @Test
-    public void test_parseRemoteValue_true() {
+    void test_parseRemoteValue_true() {
         assertEquals(Boolean.TRUE, testedAction.parseRemoteValue("true", "java.lang.Boolean"));
     }
 
     @Test
-    public void test_parseRemoteValue_false() {
+    void test_parseRemoteValue_false() {
         assertEquals(Boolean.FALSE, testedAction.parseRemoteValue("false", "java.lang.Boolean"));
     }
 
     @Test
-    public void test_parseRemoteValue_yes() {
+    void test_parseRemoteValue_yes() {
         assertEquals(Boolean.TRUE, testedAction.parseRemoteValue("yes", "java.lang.Boolean"));
     }
 
     @Test
-    public void test_parseRemoteValue_foo() {
+    void test_parseRemoteValue_foo() {
         assertEquals(Boolean.FALSE, testedAction.parseRemoteValue("foo", "java.lang.Boolean"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void test_parseRemoteValue() {
-        assertEquals(Boolean.FALSE, testedAction.parseRemoteValue("foo", "not.existing.Type"));
+    @Test
+    void test_parseRemoteValue()throws Exception {
+        assertThrows(IllegalArgumentException.class, () ->
+            assertEquals(Boolean.FALSE, testedAction.parseRemoteValue("foo", "not.existing.Type")));
     }
 
     @Test
-    public void test_parseRemoteValue_42() {
+    void test_parseRemoteValue_42() {
         assertEquals(42, testedAction.parseRemoteValue("42", "java.lang.Integer"));
     }
 
     @Test
-    public void test_parseRemoteValue_42L() {
+    void test_parseRemoteValue_42L() {
         assertEquals(42L, testedAction.parseRemoteValue("42", "java.lang.Long"));
     }
 
     @Test
-    public void test_parseRemoteValue_date1() {
+    void test_parseRemoteValue_date1() {
         TimeZone originalDefaultTimeZone = TimeZone.getDefault();
         try {
             TimeZone.setDefault(TimeZone.getTimeZone("CET"));
@@ -147,7 +149,7 @@ public class CustomBuildPropertiesActionTest {
     }
 
     @Test
-    public void test_parseRemoteValue_date2() {
+    void test_parseRemoteValue_date2() {
         TimeZone originalDefaultTimeZone = TimeZone.getDefault();
         try {
             TimeZone.setDefault(TimeZone.getTimeZone("CET"));
@@ -159,7 +161,7 @@ public class CustomBuildPropertiesActionTest {
     }
 
     @Test
-    public void test_parseRemoteValue_date3() {
+    void test_parseRemoteValue_date3() {
         TimeZone originalDefaultTimeZone = TimeZone.getDefault();
         try {
             TimeZone.setDefault(TimeZone.getTimeZone("CET"));
@@ -171,7 +173,7 @@ public class CustomBuildPropertiesActionTest {
     }
 
     @Test
-    public void test_parseRemoteValue_date4() {
+    void test_parseRemoteValue_date4() {
         TimeZone originalDefaultTimeZone = TimeZone.getDefault();
         try {
             TimeZone.setDefault(TimeZone.getTimeZone("CET"));
