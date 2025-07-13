@@ -38,3 +38,7 @@ Example: `setCustomBuildProperty(key: '_cbp_sanitizer_Key_Activity-Graph_Value',
 ## Versioning
 
 This plugin uses automatic versioning with a manually controlled prefix.
+
+## Java Version
+
+Java 17 with version 3.
