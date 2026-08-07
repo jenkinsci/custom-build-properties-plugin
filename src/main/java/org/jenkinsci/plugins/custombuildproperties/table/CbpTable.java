@@ -25,7 +25,7 @@
 package org.jenkinsci.plugins.custombuildproperties.table;
 
 import hudson.markup.MarkupFormatter;
-import org.apache.commons.lang.time.FastDateFormat;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.jenkinsci.plugins.custombuildproperties.SvgAwareSanitizer;
 
 import java.io.IOException;

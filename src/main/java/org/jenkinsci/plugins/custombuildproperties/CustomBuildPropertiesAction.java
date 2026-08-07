@@ -30,7 +30,7 @@ import hudson.model.Run;
 import jenkins.model.Jenkins;
 import jenkins.model.RunAction2;
 import net.sf.json.JSONObject;
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jenkinsci.plugins.custombuildproperties.table.CbpTable;
 import org.jenkinsci.plugins.custombuildproperties.table.CbpTablesFactory;
 import org.kohsuke.stapler.QueryParameter;
